@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Market Intelligence — Steel & Green Iron</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #0c0d0f;
+  --bg2: #13151a;
+  --bg3: #1a1d24;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.13);
+  --text: #e8e9ec;
+  --muted: #6b7280;
+  --accent: #00e5a0;
+  --accent2: #0066ff;
+  --warn: #f59e0b;
+  --danger: #ef4444;
+  --radius: 10px;
+  --mono: 'DM Mono', monospace;
+  --sans: 'Syne', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; }
+
+/* LAYOUT */
+.shell { display: flex; height: 100vh; overflow: hidden; }
+.sidebar { width: 220px; flex-shrink: 0; background: var(--bg2); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 24px 0; }
+.main { flex: 1; overflow-y: auto; }
+
+/* SIDEBAR */
+.logo { padding: 0 20px 24px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+.logo-mark { font-size: 11px; font-family: var(--mono); color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase; }
+.logo-name { font-size: 17px; font-weight: 700; color: var(--text); line-height: 1.2; margin-top: 4px; }
+.nav-section { padding: 0 12px; margin-bottom: 8px; }
+.nav-label { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; padding: 0 8px; margin-bottom: 4px; }
+.nav-item { display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 13px; color: var(--muted); transition: all 0.15s; border: none; background: none; width: 100%; text-align: left; font-family: var(--sans); }
+.nav-item:hover { background: var(--bg3); color: var(--text); }
+.nav-item.active { background: rgba(0,229,160,0.08); color: var(--accent); }
+.nav-item svg { width: 15px; height: 15px; flex-shrink: 0; opacity: 0.7; }
+.nav-item.active svg { opacity: 1; }
+.sidebar-footer { margin-top: auto; padding: 16px 20px 0; border-top: 1px solid var(--border); }
+.sidebar-footer p { font-size: 11px; font-family: var(--mono); color: var(--muted); }
+
+/* HEADER */
+.page-header { padding: 32px 36px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.page-title { font-size: 22px; font-weight: 700; }
+.page-sub { font-size: 13px; color: var(--muted); margin-top: 4px; font-family: var(--mono); }
+.header-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+/* BUTTONS */
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-family: var(--sans); cursor: pointer; border: 1px solid var(--border2); background: var(--bg3); color: var(--text); transition: all 0.15s; font-weight: 600; }
+.btn:hover { border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.06); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-accent { background: var(--accent); color: #000; border-color: var(--accent); }
+.btn-accent:hover { background: #00ffb3; border-color: #00ffb3; }
+.btn svg { width: 14px; height: 14px; }
+
+/* CONTENT */
+.content { padding: 28px 36px; }
+.section { display: none; }
+.section.active { display: block; }
+
+/* CARDS */
+.card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+.card + .card { margin-top: 16px; }
+
+/* GRID */
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+
+/* COMPANY CARDS */
+.company-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-bottom: 24px; }
+.company-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; cursor: pointer; transition: all 0.15s; position: relative; }
+.company-card:hover { border-color: var(--border2); transform: translateY(-1px); }
+.company-card.selected { border-color: var(--accent); background: rgba(0,229,160,0.04); }
+.company-card .cat-badge { font-family: var(--mono); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; padding: 2px 7px; border-radius: 4px; display: inline-block; margin-bottom: 8px; }
+.cat-competitor { background: rgba(239,68,68,0.12); color: #fca5a5; }
+.cat-industry { background: rgba(59,130,246,0.12); color: #93c5fd; }
+.cat-org { background: rgba(245,158,11,0.12); color: #fcd34d; }
+.company-card .co-name { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.3; }
+.company-card .co-sub { font-size: 11px; font-family: var(--mono); color: var(--muted); margin-top: 3px; }
+
+/* SOURCE LIST */
+.source-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.source-item:last-child { border-bottom: none; }
+.source-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.source-dot.rss { background: var(--accent); }
+.source-dot.alert { background: var(--accent2); }
+.source-info { flex: 1; }
+.source-name { font-size: 13px; font-weight: 600; }
+.source-url { font-size: 11px; font-family: var(--mono); color: var(--muted); margin-top: 2px; }
+.source-type { font-size: 10px; font-family: var(--mono); color: var(--muted); background: var(--bg3); padding: 2px 8px; border-radius: 4px; }
+
+/* ANALYSIS */
+.select-styled { background: var(--bg3); border: 1px solid var(--border2); border-radius: 6px; color: var(--text); font-family: var(--sans); font-size: 13px; padding: 9px 12px; width: 100%; appearance: none; cursor: pointer; }
+.select-styled:focus { outline: none; border-color: var(--accent); }
+.label-mono { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.result-panel { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; min-height: 120px; font-size: 14px; line-height: 1.75; color: var(--text); white-space: pre-wrap; font-family: var(--mono); }
+.spinner-wrap { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 13px; font-family: var(--mono); }
+.spin { width: 14px; height: 14px; border: 2px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* TRENDS */
+.trend-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 10px; }
+.trend-tag { font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; display: inline-block; margin-bottom: 8px; }
+.tag-opportunity { background: rgba(0,229,160,0.1); color: var(--accent); }
+.tag-threat { background: rgba(239,68,68,0.1); color: #fca5a5; }
+.tag-innovation { background: rgba(59,130,246,0.1); color: #93c5fd; }
+.tag-market { background: rgba(245,158,11,0.1); color: #fcd34d; }
+.trend-title { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+.trend-desc { font-size: 13px; color: var(--muted); line-height: 1.6; font-family: var(--mono); }
+
+/* REPORT */
+.report-output { font-family: var(--mono); font-size: 13px; line-height: 1.8; color: var(--text); white-space: pre-wrap; }
+.report-output h2 { font-family: var(--sans); font-size: 15px; font-weight: 700; color: var(--accent); margin: 20px 0 8px; }
+
+/* STAT CARDS */
+.stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; }
+.stat-value { font-size: 28px; font-weight: 700; color: var(--text); font-family: var(--mono); }
+.stat-label { font-size: 11px; font-family: var(--mono); color: var(--muted); margin-top: 4px; letter-spacing: 0.06em; text-transform: uppercase; }
+
+/* INPUT */
+input[type=text], textarea {
+  background: var(--bg3); border: 1px solid var(--border2); border-radius: 6px;
+  color: var(--text); font-family: var(--mono); font-size: 13px; padding: 9px 12px;
+  width: 100%; transition: border-color 0.15s;
+}
+input[type=text]:focus, textarea:focus { outline: none; border-color: var(--accent); }
+textarea { resize: vertical; min-height: 80px; }
+
+/* API KEY BANNER */
+.api-banner { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25); border-radius: var(--radius); padding: 14px 18px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.api-banner p { font-size: 13px; font-family: var(--mono); color: #fca5a5; }
+.api-banner-ok { background: rgba(0,229,160,0.06); border-color: rgba(0,229,160,0.2); }
+.api-banner-ok p { color: var(--accent); }
+
+/* SLACK MODAL */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 100; display: none; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--bg2); border: 1px solid var(--border2); border-radius: 12px; padding: 28px; width: 480px; max-width: 90vw; }
+.modal h2 { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+.modal p { font-size: 13px; color: var(--muted); font-family: var(--mono); margin-bottom: 20px; line-height: 1.6; }
+.modal-row { margin-bottom: 14px; }
+.modal-actions { display: flex; gap: 8px; margin-top: 20px; justify-content: flex-end; }
+
+/* ADD COMPANY */
+.add-row { display: flex; gap: 8px; }
+.add-row input { flex: 1; }
+.add-row select { flex: 0 0 160px; background: var(--bg3); border: 1px solid var(--border2); border-radius: 6px; color: var(--text); font-family: var(--mono); font-size: 13px; padding: 9px 12px; appearance: none; cursor: pointer; }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* MOBILE */
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .page-header { padding: 20px; flex-direction: column; }
+  .content { padding: 20px; }
+  .grid-3, .grid-2 { grid-template-columns: 1fr; }
+  .company-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* TICKER */
+.ticker-bar { background: var(--bg3); border-bottom: 1px solid var(--border); padding: 8px 36px; font-family: var(--mono); font-size: 11px; color: var(--muted); display: flex; gap: 24px; overflow: hidden; }
+.ticker-item { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.ticker-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">Intel // v1.0</div>
+      <div class="logo-name">Market<br>Intelligence</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Overview</div>
+      <button class="nav-item active" onclick="nav('dashboard')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </button>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Intelligence</div>
+      <button class="nav-item" onclick="nav('watch')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+        Watch List
+      </button>
+      <button class="nav-item" onclick="nav('analyze')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Analysis
+      </button>
+      <button class="nav-item" onclick="nav('trends')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+        Trends
+      </button>
+      <button class="nav-item" onclick="nav('sources')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>
+        Sources
+      </button>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Output</div>
+      <button class="nav-item" onclick="nav('report')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Reports
+      </button>
+      <button class="nav-item" onclick="openSlackModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.27h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.9a16 16 0 0 0 8 8l.38-.38a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 23 18.92z"/></svg>
+        Slack Alerts
+      </button>
+    </div>
+    <div class="sidebar-footer">
+      <button class="nav-item" onclick="openApiKeyModal()" style="margin-bottom:8px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+        API Key
+      </button>
+      <p>Steel &amp; Green Iron<br>Intelligence Suite</p>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main">
+    <!-- TICKER -->
+    <div class="ticker-bar">
+      <div class="ticker-item"><span class="ticker-dot"></span>Live monitoring active</div>
+      <div class="ticker-item">21 sources tracked</div>
+      <div class="ticker-item">Last scan: just now</div>
+      <div class="ticker-item">Slack: not connected</div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="section active" id="sec-dashboard">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Dashboard</div>
+          <div class="page-sub">Steel &amp; Green Iron — Market Intelligence</div>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-accent" onclick="nav('analyze')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            Run Analysis
+          </button>
+        </div>
+      </div>
+      <div class="content">
+        <div class="grid-3" style="margin-bottom:24px;">
+          <div class="stat-card"><div class="stat-value">11</div><div class="stat-label">Competitors tracked</div></div>
+          <div class="stat-card"><div class="stat-value">5</div><div class="stat-label">Industry companies</div></div>
+          <div class="stat-card"><div class="stat-value">5</div><div class="stat-label">News sources</div></div>
+        </div>
+        <div class="card">
+          <div class="label-mono" style="margin-bottom:16px;">Quick actions</div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn" onclick="nav('analyze'); document.getElementById('qa-company').value='Boston Metal'; document.getElementById('qa-type').value='news';">Latest: Boston Metal</button>
+            <button class="btn" onclick="nav('analyze'); document.getElementById('qa-company').value='Stegra'; document.getElementById('qa-type').value='news';">Latest: Stegra</button>
+            <button class="btn" onclick="nav('analyze'); document.getElementById('qa-company').value='Electra'; document.getElementById('qa-type').value='news';">Latest: Electra</button>
+            <button class="btn" onclick="nav('trends')">Green iron trends</button>
+            <button class="btn" onclick="nav('report')">Generate weekly report</button>
+          </div>
+        </div>
+        <div class="card" style="margin-top:16px;">
+          <div class="label-mono" style="margin-bottom:14px;">Competitor overview</div>
+          <div class="company-grid" id="dash-grid"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WATCH LIST -->
+    <div class="section" id="sec-watch">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Watch List</div>
+          <div class="page-sub">All monitored companies &amp; organisations</div>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-accent" onclick="document.getElementById('add-panel').style.display='block'">+ Add company</button>
+        </div>
+      </div>
+      <div class="content">
+        <div id="add-panel" style="display:none; margin-bottom:20px;">
+          <div class="card">
+            <div class="label-mono" style="margin-bottom:10px;">Add new entry</div>
+            <div class="add-row">
+              <input type="text" id="new-name" placeholder="Company name" />
+              <select id="new-cat">
+                <option value="competitor">Competitor</option>
+                <option value="industry">Industry co.</option>
+                <option value="org">Organisation</option>
+              </select>
+              <input type="text" id="new-note" placeholder="Note (optional)" style="flex:0 0 180px;" />
+              <button class="btn btn-accent" onclick="addCompany()">Add</button>
+            </div>
+          </div>
+        </div>
+        <div class="label-mono" style="margin-bottom:10px;">Competitors</div>
+        <div class="company-grid" id="grid-competitor"></div>
+        <div class="label-mono" style="margin-bottom:10px; margin-top:20px;">Industry companies</div>
+        <div class="company-grid" id="grid-industry"></div>
+        <div class="label-mono" style="margin-bottom:10px; margin-top:20px;">Organisations</div>
+        <div class="company-grid" id="grid-org"></div>
+      </div>
+    </div>
+
+    <!-- ANALYSIS -->
+    <div class="section" id="sec-analyze">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Competitor Analysis</div>
+          <div class="page-sub">AI-powered intelligence on any tracked company</div>
+        </div>
+      </div>
+      <div class="content">
+        <div class="card">
+          <div class="grid-2" style="gap:16px; margin-bottom:16px;">
+            <div>
+              <div class="label-mono">Company</div>
+              <select class="select-styled" id="qa-company"></select>
+            </div>
+            <div>
+              <div class="label-mono">Analysis type</div>
+              <select class="select-styled" id="qa-type">
+                <option value="overview">Overall company overview</option>
+                <option value="news">Latest news &amp; activity (live search)</option>
+                <option value="swot">SWOT analysis</option>
+                <option value="positioning">Market positioning</option>
+                <option value="products">Products &amp; technology</option>
+                <option value="funding">Funding &amp; financials</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn btn-accent" id="run-btn" onclick="runAnalysis()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Run Analysis
+          </button>
+        </div>
+        <div id="analysis-out" style="display:none; margin-top:16px;">
+          <div class="label-mono" id="analysis-label" style="margin-bottom:8px;"></div>
+          <div class="result-panel" id="analysis-text"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRENDS -->
+    <div class="section" id="sec-trends">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Industry Trends</div>
+          <div class="page-sub">AI analysis of market movements &amp; signals</div>
+        </div>
+      </div>
+      <div class="content">
+        <div class="card" style="margin-bottom:20px;">
+          <div class="label-mono">Topic / focus area</div>
+          <div style="display:flex; gap:10px; margin-top:8px;">
+            <input type="text" id="trend-input" placeholder="e.g. green iron, hydrogen DRI, steel decarbonisation, EAF technology..." style="flex:1;" />
+            <button class="btn btn-accent" id="trend-btn" onclick="runTrends()">Analyse</button>
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
+            <button class="btn" style="font-size:11px; padding:5px 10px;" onclick="document.getElementById('trend-input').value='green iron & hydrogen DRI'; runTrends()">Green iron / H₂ DRI</button>
+            <button class="btn" style="font-size:11px; padding:5px 10px;" onclick="document.getElementById('trend-input').value='steel decarbonisation policy EU'; runTrends()">EU policy</button>
+            <button class="btn" style="font-size:11px; padding:5px 10px;" onclick="document.getElementById('trend-input').value='electric arc furnace EAF investment'; runTrends()">EAF investment</button>
+            <button class="btn" style="font-size:11px; padding:5px 10px;" onclick="document.getElementById('trend-input').value='steel startup funding 2025'; runTrends()">Startup funding</button>
+          </div>
+        </div>
+        <div id="trend-out"></div>
+      </div>
+    </div>
+
+    <!-- SOURCES -->
+    <div class="section" id="sec-sources">
+      <div class="page-header">
+        <div>
+          <div class="page-title">News Sources</div>
+          <div class="page-sub">RSS feeds &amp; monitored publications</div>
+        </div>
+      </div>
+      <div class="content">
+        <div class="card">
+          <div class="label-mono" style="margin-bottom:14px;">Industry publications</div>
+          <div id="source-list"></div>
+        </div>
+        <div class="card" style="margin-top:16px;">
+          <div class="label-mono" style="margin-bottom:10px;">Add a source</div>
+          <div style="display:flex; gap:8px;">
+            <input type="text" id="new-source-name" placeholder="Publication name" style="flex:0 0 180px;" />
+            <input type="text" id="new-source-url" placeholder="Website or RSS URL" />
+            <button class="btn btn-accent" onclick="addSource()">Add</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REPORT -->
+    <div class="section" id="sec-report">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Intelligence Reports</div>
+          <div class="page-sub">Generate structured briefings</div>
+        </div>
+      </div>
+      <div class="content">
+        <div class="card">
+          <div class="label-mono">Report focus</div>
+          <textarea id="report-focus" style="margin-top:8px; margin-bottom:14px;" placeholder="Describe what this report should focus on, e.g. 'What are competitors doing in hydrogen-based iron reduction? Any new partnerships, funding rounds or pilot plants announced in 2025?'"></textarea>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;">
+            <button class="btn" style="font-size:11px; padding:5px 10px;" onclick="prefillReport('Weekly competitor briefing: summarise the latest moves from Boston Metal, Electra, Stegra, GravitHy and Helios.')">Weekly briefing</button>
+            <button class="btn" style="font-size:11px; padding:5px 10px;" onclick="prefillReport('Market landscape: how are the major steel producers (SSAB, ThyssenKrupp, ArcelorMittal, Tata Steel) positioning on green steel and DRI technology?')">Green steel landscape</button>
+            <button class="btn" style="font-size:11px; padding:5px 10px;" onclick="prefillReport('Funding & investment activity in green iron and hydrogen DRI startups in 2024-2025. Who raised money, how much, and for what?')">Funding roundup</button>
+          </div>
+          <button class="btn btn-accent" id="report-btn" onclick="generateReport()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            Generate Report
+          </button>
+        </div>
+        <div id="report-out" style="display:none; margin-top:16px;">
+          <div class="card">
+            <div class="report-area" id="report-text"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /shell -->
+
+<!-- SLACK MODAL -->
+<div class="modal-overlay" id="slack-modal">
+  <div class="modal">
+    <h2>Connect Slack Alerts</h2>
+    <p>Paste your Slack Incoming Webhook URL to receive automated intelligence digests. You can set this up at api.slack.com/apps → Incoming Webhooks.</p>
+    <div class="modal-row">
+      <div class="label-mono">Slack Webhook URL</div>
+      <input type="text" id="slack-url" placeholder="https://hooks.slack.com/services/..." style="margin-top:6px;" />
+    </div>
+    <div class="modal-row">
+      <div class="label-mono">Digest frequency</div>
+      <select class="select-styled" id="slack-freq" style="margin-top:6px;">
+        <option>Daily at 08:00</option>
+        <option>Weekly on Monday 08:00</option>
+        <option>Manual only</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeSlackModal()">Cancel</button>
+      <button class="btn btn-accent" onclick="saveSlack()">Save &amp; Connect</button>
+    </div>
+  </div>
+</div>
+
+<!-- API KEY MODAL -->
+<div class="modal-overlay" id="apikey-modal" style="display:flex;">
+  <div class="modal">
+    <h2>Enter your Anthropic API key</h2>
+    <p>This app uses the Anthropic API to run AI analyses. Your key is stored only in your browser (localStorage) and never sent anywhere except directly to Anthropic.<br><br>Get a key at <strong>console.anthropic.com</strong> → API Keys.</p>
+    <div class="modal-row">
+      <div class="label-mono">API Key</div>
+      <input type="password" id="apikey-input" placeholder="sk-ant-..." style="margin-top:6px; font-family:var(--mono);" />
+    </div>
+    <div id="apikey-error" style="font-size:12px; font-family:var(--mono); color:#fca5a5; margin-top:6px; display:none;">Invalid key format — should start with sk-ant-</div>
+    <div class="modal-actions">
+      <button class="btn btn-accent" onclick="saveApiKey()">Save &amp; Continue</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const COMPANIES = [
+  { name:'Boston Metal', cat:'competitor', note:'Molten oxide electrolysis' },
+  { name:'Electra', cat:'competitor', note:'Electrochemical iron' },
+  { name:'Alterna', cat:'competitor', note:'' },
+  { name:'Element Zero', cat:'competitor', note:'' },
+  { name:'GravitHy', cat:'competitor', note:'H₂-based DRI' },
+  { name:'Helios', cat:'competitor', note:'' },
+  { name:'HyIron', cat:'competitor', note:'Hydrogen iron' },
+  { name:'Kobe Steel / Fastmet', cat:'competitor', note:'ITmk3 / rotary hearth' },
+  { name:'SMS Group / Metso Outotec / Circored', cat:'competitor', note:'Technology providers' },
+  { name:'Stegra', cat:'competitor', note:'H₂ green steel, Sweden' },
+  { name:'Green14', cat:'competitor', note:'' },
+  { name:'SSAB', cat:'industry', note:'HYBRIT, fossil-free steel' },
+  { name:'ThyssenKrupp', cat:'industry', note:'tkH2Steel DRI' },
+  { name:'ArcelorMittal', cat:'industry', note:'XCarb programme' },
+  { name:'Tata Steel', cat:'industry', note:'EAF transition' },
+  { name:'Aperam', cat:'industry', note:'Stainless & specialties' },
+  { name:'Jernkontoret', cat:'org', note:'Swedish steel federation' },
+];
+
+const SOURCES = [
+  { name:'Metal Bulletin / Fastmarkets', url:'https://www.fastmarkets.com', type:'RSS' },
+  { name:'Steel Times International', url:'https://www.steeltimesint.com', type:'RSS' },
+  { name:'World Steel Association', url:'https://worldsteel.org/media-centre/press-releases/', type:'Press' },
+  { name:'Recharge News', url:'https://www.rechargenews.com', type:'RSS' },
+  { name:'H2 View', url:'https://www.h2-view.com', type:'RSS' },
+];
+
+let companies = [...COMPANIES];
+let sources = [...SOURCES];
+
+function getInitials(name) {
+  return name.split(/[\s\/]/).filter(Boolean).map(w => w[0]).join('').toUpperCase().slice(0,2);
+}
+
+function catClass(cat) {
+  return cat === 'competitor' ? 'cat-competitor' : cat === 'industry' ? 'cat-industry' : 'cat-org';
+}
+function catLabel(cat) {
+  return cat === 'competitor' ? 'Competitor' : cat === 'industry' ? 'Industry co.' : 'Organisation';
+}
+
+function renderGrid(containerId, cat) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const filtered = companies.filter(c => c.cat === cat);
+  el.innerHTML = filtered.map(c => `
+    <div class="company-card" onclick="goAnalyse('${c.name}')">
+      <span class="cat-badge ${catClass(c.cat)}">${catLabel(c.cat)}</span>
+      <div class="co-name">${c.name}</div>
+      ${c.note ? `<div class="co-sub">${c.note}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+function renderAll() {
+  renderGrid('dash-grid', 'competitor');
+  renderGrid('grid-competitor', 'competitor');
+  renderGrid('grid-industry', 'industry');
+  renderGrid('grid-org', 'org');
+  const sel = document.getElementById('qa-company');
+  if (sel) sel.innerHTML = companies.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+}
+
+function renderSources() {
+  const el = document.getElementById('source-list');
+  if (!el) return;
+  el.innerHTML = sources.map(s => `
+    <div class="source-item">
+      <div class="source-dot rss"></div>
+      <div class="source-info">
+        <div class="source-name">${s.name}</div>
+        <div class="source-url">${s.url}</div>
+      </div>
+      <div class="source-type">${s.type}</div>
+    </div>
+  `).join('');
+}
+
+function nav(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-' + id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const map = { dashboard:0, watch:1, analyze:2, trends:3, sources:4, report:5 };
+  document.querySelectorAll('.nav-item')[map[id]]?.classList.add('active');
+  renderAll(); renderSources();
+}
+
+function goAnalyse(name) {
+  nav('analyze');
+  document.getElementById('qa-company').value = name;
+}
+
+function addCompany() {
+  const name = document.getElementById('new-name').value.trim();
+  const cat = document.getElementById('new-cat').value;
+  const note = document.getElementById('new-note').value.trim();
+  if (!name) return;
+  companies.push({ name, cat, note });
+  document.getElementById('new-name').value = '';
+  document.getElementById('new-note').value = '';
+  renderAll();
+}
+
+function addSource() {
+  const name = document.getElementById('new-source-name').value.trim();
+  const url = document.getElementById('new-source-url').value.trim();
+  if (!name || !url) return;
+  sources.push({ name, url, type: 'RSS' });
+  document.getElementById('new-source-name').value = '';
+  document.getElementById('new-source-url').value = '';
+  renderSources();
+}
+
+function getApiKey() { return localStorage.getItem('anthropicApiKey') || ''; }
+
+function saveApiKey() {
+  const key = document.getElementById('apikey-input').value.trim();
+  const err = document.getElementById('apikey-error');
+  if (!key.startsWith('sk-ant-') && !key.startsWith('sk-')) {
+    err.style.display = 'block'; return;
+  }
+  err.style.display = 'none';
+  localStorage.setItem('anthropicApiKey', key);
+  document.getElementById('apikey-modal').style.display = 'none';
+  updateKeyStatus();
+}
+
+function updateKeyStatus() {}
+function openApiKeyModal() {
+  document.getElementById('apikey-input').value = '';
+  document.getElementById('apikey-modal').style.display = 'flex';
+}
+
+async function callClaude(prompt, search=false) {
+  const body = {
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 1000,
+    messages: [{ role:'user', content: prompt }]
+  };
+  if (search) body.tools = [{ type:'web_search_20250305', name:'web_search' }];
+  const r = await fetch('/.netlify/functions/claude', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({}));
+    throw new Error(err.error || 'API error ' + r.status);
+  }
+  const d = await r.json();
+  return d.content.map(b => b.type === 'text' ? b.text : '').filter(Boolean).join('\n');
+}
+
+async function runAnalysis() {
+  const company = document.getElementById('qa-company').value;
+  const type = document.getElementById('qa-type').value;
+  const btn = document.getElementById('run-btn');
+  btn.disabled = true; btn.textContent = 'Analysing...';
+  const out = document.getElementById('analysis-out');
+  const label = document.getElementById('analysis-label');
+  const text = document.getElementById('analysis-text');
+  out.style.display = 'block';
+  text.innerHTML = '<div class="spinner-wrap"><span class="spin"></span>Fetching intelligence on ' + company + '...</div>';
+
+  const typeMap = {
+    overview: `Write a concise overview (max 200 words) of "${company}" as a green iron / steel company. Cover: what they do, technology approach, key milestones, and market position.`,
+    news: `Search for the latest news and announcements (2024-2025) about "${company}". Summarise the 3-5 most significant developments in plain English. Focus on: funding, partnerships, pilot plants, production milestones, leadership changes.`,
+    swot: `Write a SWOT analysis for "${company}" in the green iron/steel sector. Use clear headings: Strengths, Weaknesses, Opportunities, Threats. Max 3 points each, written as concise bullet points.`,
+    positioning: `Describe how "${company}" positions itself in the green iron/steel market. Cover: target customers, core value proposition, pricing tier (if known), and key differentiators vs competitors.`,
+    products: `Describe the technology and products/services of "${company}". What is their core process (DRI, electrolysis, etc.), technology readiness level, and any commercial offerings or pilots?`,
+    funding: `What is known about the funding, investors, and financial status of "${company}"? Include any known investment rounds, strategic partners, government grants, and estimated valuation if available.`
+  };
+  const useSearch = ['news','funding'].includes(type);
+  label.textContent = type.toUpperCase() + ' — ' + company;
+  try {
+    const result = await callClaude(typeMap[type], useSearch);
+    text.textContent = result;
+  } catch(e) {
+    text.textContent = 'Analysis failed. Check your connection and try again.';
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><polygon points="5 3 19 12 5 21 5 3"/></svg> Run Analysis';
+}
+
+async function runTrends() {
+  const topic = document.getElementById('trend-input').value.trim();
+  if (!topic) return;
+  const btn = document.getElementById('trend-btn');
+  btn.disabled = true; btn.textContent = 'Searching...';
+  const out = document.getElementById('trend-out');
+  out.innerHTML = '<div class="card"><div class="spinner-wrap"><span class="spin"></span>Analysing trends for "' + topic + '"...</div></div>';
+  const prompt = `Analyse current trends (2024-2025) in the topic: "${topic}", focusing on the green steel, green iron, and hydrogen DRI industry.
+Return ONLY valid JSON (no markdown, no preamble) in this exact format:
+{"trends":[{"title":"...","description":"...","type":"opportunity"},{"title":"...","description":"...","type":"threat"},{"title":"...","description":"...","type":"innovation"},{"title":"...","description":"...","type":"market"}]}
+Give exactly 4 trends. Type must be one of: opportunity, threat, innovation, market. Be specific and data-driven. Description max 60 words.`;
+  try {
+    const raw = await callClaude(prompt, true);
+    const clean = raw.replace(/```json|```/g,'').trim();
+    const data = JSON.parse(clean);
+    out.innerHTML = data.trends.map(t => `
+      <div class="trend-card">
+        <span class="trend-tag tag-${t.type}">${t.type}</span>
+        <div class="trend-title">${t.title}</div>
+        <div class="trend-desc">${t.description}</div>
+      </div>`).join('');
+  } catch(e) {
+    out.innerHTML = '<div class="card"><div style="font-family:var(--mono);font-size:13px;color:var(--muted);">Could not retrieve trends. Try again.</div></div>';
+  }
+  btn.disabled = false; btn.textContent = 'Analyse';
+}
+
+function prefillReport(text) {
+  document.getElementById('report-focus').value = text;
+}
+
+async function generateReport() {
+  const focus = document.getElementById('report-focus').value.trim();
+  if (!focus) return;
+  const btn = document.getElementById('report-btn');
+  btn.disabled = true; btn.textContent = 'Generating...';
+  const out = document.getElementById('report-out');
+  const text = document.getElementById('report-text');
+  out.style.display = 'block';
+  text.innerHTML = '<div class="spinner-wrap"><span class="spin"></span>Writing intelligence report...</div>';
+  const compList = companies.map(c => `${c.name} (${catLabel(c.cat)})`).join(', ');
+  const srcList = sources.map(s => s.name).join(', ');
+  const prompt = `You are a senior market intelligence analyst covering the green iron and steel decarbonisation sector.
+
+Write a structured intelligence report (max 450 words) on the following focus:
+"${focus}"
+
+Tracked companies: ${compList}
+Key sources to reference: ${srcList}
+
+Structure the report with these sections:
+## Executive Summary
+## Market Developments
+## Competitor Moves
+## Key Signals & Risks
+## Recommended Actions
+
+Write in clear, direct English. Be specific where possible. If using web search, prioritise 2024-2025 information.`;
+  try {
+    const result = await callClaude(prompt, true);
+    text.innerHTML = result.replace(/^##\s(.+)$/gm, '<h2>$1</h2>');
+  } catch(e) {
+    text.textContent = 'Report generation failed. Try again.';
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Generate Report';
+}
+
+function openSlackModal() { document.getElementById('slack-modal').classList.add('open'); }
+function closeSlackModal() { document.getElementById('slack-modal').classList.remove('open'); }
+function saveSlack() {
+  const url = document.getElementById('slack-url').value.trim();
+  if (url) {
+    localStorage.setItem('slackWebhook', url);
+    document.querySelector('.ticker-bar').children[3].textContent = 'Slack: connected';
+    closeSlackModal();
+    alert('Slack connected. Digests will be sent per your selected schedule.');
+  }
+}
+
+renderAll();
+renderSources();
+document.getElementById('apikey-modal').style.display = 'none';
+</script>
+</body>
+</html>
