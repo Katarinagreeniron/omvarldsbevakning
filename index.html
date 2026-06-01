@@ -495,11 +495,31 @@ const COMPANIES = [
 ];
 
 const SOURCES = [
+  // Industry publications
   { name:'Metal Bulletin / Fastmarkets', url:'https://www.fastmarkets.com', type:'RSS' },
   { name:'Steel Times International', url:'https://www.steeltimesint.com', type:'RSS' },
   { name:'World Steel Association', url:'https://worldsteel.org/media-centre/press-releases/', type:'Press' },
   { name:'Recharge News', url:'https://www.rechargenews.com', type:'RSS' },
   { name:'H2 View', url:'https://www.h2-view.com', type:'RSS' },
+  // Competitor newsrooms
+  { name:'Boston Metal – News', url:'https://www.bostonmetal.com/news/', type:'Newsroom' },
+  { name:'Boston Metal – Press Releases', url:'https://www.bostonmetal.com/press-releases/', type:'Newsroom' },
+  { name:'Stegra – News & Stories', url:'https://stegra.com/en/news-and-stories', type:'Newsroom' },
+  { name:'Stegra – PR Newswire', url:'https://www.prnewswire.com/news/stegra/', type:'Press' },
+  { name:'Electra (Electrasteel) – News', url:'https://www.electrasteel.com/news', type:'Newsroom' },
+  { name:'GravitHy – News', url:'https://www.gravithyhydrogen.com/news', type:'Newsroom' },
+  { name:'HyIron – News', url:'https://www.hyiron.com/news', type:'Newsroom' },
+  { name:'Helios – News', url:'https://www.heliosproject.co/news', type:'Newsroom' },
+  { name:'Element Zero – News', url:'https://www.elementzero.com/news', type:'Newsroom' },
+  { name:'Green14 – News', url:'https://www.green14.com/news', type:'Newsroom' },
+  // Industry companies
+  { name:'SSAB Newsroom', url:'https://www.ssab.com/en/news-and-media', type:'Newsroom' },
+  { name:'ThyssenKrupp Steel News', url:'https://www.thyssenkrupp-steel.com/en/newsroom/', type:'Newsroom' },
+  { name:'ArcelorMittal Newsroom', url:'https://corporate.arcelormittal.com/media/news-articles', type:'Newsroom' },
+  { name:'Jernkontoret News', url:'https://www.jernkontoret.se/en/news/', type:'Newsroom' },
+  // Aggregators
+  { name:'Canary Media – Green Steel', url:'https://www.canarymedia.com/topics/green-steel', type:'News' },
+  { name:'SteelOrbis News', url:'https://www.steelorbis.com/steel-news/', type:'RSS' },
 ];
 
 let companies = [...COMPANIES];
@@ -647,15 +667,20 @@ async function runAnalysis() {
   out.style.display = 'block';
   text.innerHTML = '<div class="spinner-wrap"><span class="spin"></span>Fetching intelligence on ' + company + '...</div>';
 
+  const now = new Date();
+  const TODAY = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  const twoYearsAgo = new Date(now); twoYearsAgo.setFullYear(now.getFullYear() - 2);
+  const FROM = twoYearsAgo.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  const CUTOFF = `from the period ${FROM} to ${TODAY}. Always use web search. Prioritise the most recent information first. Include the date for each item.`;
   const typeMap = {
-    overview: `Write a concise overview (max 200 words) of "${company}" as a green iron / steel company. Cover: what they do, technology approach, key milestones, and market position.`,
-    news: `Search for the latest news and announcements (2024-2025) about "${company}". Summarise the 3-5 most significant developments in plain English. Focus on: funding, partnerships, pilot plants, production milestones, leadership changes.`,
-    swot: `Write a SWOT analysis for "${company}" in the green iron/steel sector. Use clear headings: Strengths, Weaknesses, Opportunities, Threats. Max 3 points each, written as concise bullet points.`,
-    positioning: `Describe how "${company}" positions itself in the green iron/steel market. Cover: target customers, core value proposition, pricing tier (if known), and key differentiators vs competitors.`,
-    products: `Describe the technology and products/services of "${company}". What is their core process (DRI, electrolysis, etc.), technology readiness level, and any commercial offerings or pilots?`,
-    funding: `What is known about the funding, investors, and financial status of "${company}"? Include any known investment rounds, strategic partners, government grants, and estimated valuation if available.`
+    overview: `Search the web for the latest information about "${company}" as a green iron / steel company. Today is ${TODAY}. Focus on developments ${CUTOFF} Write a concise overview (max 200 words) covering: what they do, technology approach, latest milestones, and current market position. Always include the most recent news you can find.`,
+    news: `Search the web for the latest news and announcements about "${company}" ${CUTOFF} Summarise the 3-5 most significant recent developments in plain English. Focus on: funding rounds, partnerships, pilot plants, production milestones, leadership changes, press releases. Include dates for each item.`,
+    swot: `Search the web for the latest information about "${company}" ${CUTOFF} Based on the most current available data, write a SWOT analysis for "${company}" in the green iron/steel sector. Use clear headings: Strengths, Weaknesses, Opportunities, Threats. Max 3 points each as concise bullet points. Note any recent changes.`,
+    positioning: `Search the web for the latest information about "${company}" ${CUTOFF} Describe how "${company}" currently positions itself in the green iron/steel market. Cover: target customers, core value proposition, pricing tier (if known), and key differentiators vs competitors. Include any recent repositioning or strategic shifts.`,
+    products: `Search the web for the latest information about "${company}" ${CUTOFF} Describe the current technology and products/services of "${company}". What is their core process (DRI, electrolysis, etc.), current technology readiness level, any recent product launches, commercial offerings or pilot results?`,
+    funding: `Search the web for the latest funding and financial news about "${company}" ${CUTOFF} Include: all known investment rounds with amounts and dates, strategic investors, government grants, estimated valuation, and any recent financial developments.`
   };
-  const useSearch = ['news','funding'].includes(type);
+  const useSearch = true;
   label.textContent = type.toUpperCase() + ' — ' + company;
   try {
     const result = await callClaude(typeMap[type], useSearch);
@@ -674,7 +699,8 @@ async function runTrends() {
   btn.disabled = true; btn.textContent = 'Searching...';
   const out = document.getElementById('trend-out');
   out.innerHTML = '<div class="card"><div class="spinner-wrap"><span class="spin"></span>Analysing trends for "' + topic + '"...</div></div>';
-  const prompt = `Analyse current trends (2024-2025) in the topic: "${topic}", focusing on the green steel, green iron, and hydrogen DRI industry.
+  const now2 = new Date(); const todayStr = now2.toLocaleDateString('en-GB', {day:'numeric',month:'long',year:'numeric'}); const from2 = new Date(now2); from2.setFullYear(now2.getFullYear()-2); const fromStr = from2.toLocaleDateString('en-GB', {day:'numeric',month:'long',year:'numeric'});
+  const prompt = `Search the web for the latest trends and developments from ${fromStr} to ${todayStr} in: "${topic}", focusing on the green steel, green iron, and hydrogen DRI industry. Today is ${todayStr}.
 Return ONLY valid JSON (no markdown, no preamble) in this exact format:
 {"trends":[{"title":"...","description":"...","type":"opportunity"},{"title":"...","description":"...","type":"threat"},{"title":"...","description":"...","type":"innovation"},{"title":"...","description":"...","type":"market"}]}
 Give exactly 4 trends. Type must be one of: opportunity, threat, innovation, market. Be specific and data-driven. Description max 60 words.`;
@@ -724,7 +750,7 @@ Structure the report with these sections:
 ## Key Signals & Risks
 ## Recommended Actions
 
-Write in clear, direct English. Be specific where possible. If using web search, prioritise 2024-2025 information.`;
+Write in clear, direct English. Be specific where possible. Today is ' + TODAY + ' — search for and prioritise information from the last 2 years. Include dates for all developments mentioned.`;
   try {
     const result = await callClaude(prompt, true);
     text.innerHTML = result.replace(/^##\s(.+)$/gm, '<h2>$1</h2>');
