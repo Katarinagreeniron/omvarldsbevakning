@@ -612,7 +612,7 @@ async function callClaude(prompt, search=false) {
   const apiKey = getApiKey();
   if (!apiKey) { openApiKeyModal(); throw new Error('No API key'); }
   const body = {
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-5',
     max_tokens: 1000,
     messages: [{ role:'user', content: prompt }]
   };
